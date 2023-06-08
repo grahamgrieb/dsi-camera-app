@@ -60,7 +60,7 @@ int main(void) {
 	camInit(FIFO_USER_01, BACK);
 	int i;
 	// Sprite initialisation
-	
+	//setup memory for sprites
 	oamInit(&oamMain,SpriteMapping_1D_32,true);
 	vramSetBankF(VRAM_F_LCD);
 	
@@ -99,6 +99,14 @@ int main(void) {
 		
 		touchRead(&touch);
 		scanKeys();
+		if (keysDown() & KEY_B) { //switch cameras whenever the B button is pressed
+			camSwitch();
+		}
+		if (keysDown() & KEY_START) { //deactivate the camera and terminate the program whenever START is pressed
+			camStop();
+			break;
+		}
+		//change sticker mode
 		if ( keysDown() & KEY_RIGHT){
 			if(mode==5){
 				mode=1;
@@ -115,7 +123,7 @@ int main(void) {
 				mode-=1;
 			}
 		}
-		// print at using ansi escape sequence \x1b[line;columnH 
+		// Debug info on bottom screen
 		iprintf("\x1b[6;5HTouch x = %04X, %04X\n", touch.rawx, touch.px);
 		iprintf("\x1b[7;5HTouch y = %04X, %04X\n", touch.rawy, touch.py);	
 		iprintf("\x1b%d\n",holding);	
@@ -123,12 +131,12 @@ int main(void) {
 		iprintf("\x1bMode: %d\n",mode);	
 
 		
-		//let go
+		//let go of sticker
 		if (holding && (touch.rawx == 0 || touch.rawy == 0)){
 			holding=false;
 			sprite_i+=1;
 		}
-		//start
+		//start sticker
 		else if (!holding && (touch.rawx > 0 || touch.rawy > 0)){
 			holding=true;
 			
@@ -155,9 +163,7 @@ int main(void) {
 			//sprites[i].oam = &OAMCopy[sprite_i];
 			//set up our sprites OAM entry attributes
 			
-			/*OAMCopy[sprite_i].attribute[2] = 0;
-			OAMCopy[sprite_i].attribute[1] = ATTR1_SIZE_32 |((touch.px - 16) & 0x01FF);
-			OAMCopy[sprite_i].attribute[0] = ATTR0_COLOR_256 | ATTR0_SQUARE | ((touch.py -16) & 0x00FF);*/
+			
 			oamSet(&oamMain, //main graphics engine context
             sprite_i,           //oam index (0 to 127)  (spritenumber)
             touch.px, touch.py,   //x and y pixle location of the sprite
@@ -174,14 +180,7 @@ int main(void) {
             );        
 			
 		}
-		scanKeys();
-		if (keysDown() & KEY_B) { //switch cameras whenever the B button is pressed
-			camSwitch();
-		}
-		if (keysDown() & KEY_START) { //deactivate the camera and terminate the program whenever START is pressed
-			camStop();
-			break;
-		}
+		
 		
 	}
 
